@@ -1,3 +1,6 @@
+#Refere to https://medium.com/p/eb9326c6ab7c for explanation.. Very good atrical.
+
+
 import nltk
 import random
 import matplotlib.pyplot as plt
