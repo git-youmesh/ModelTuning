@@ -12,7 +12,7 @@ train_dataset = load_dataset(
 ).select(range(50_000))
 train_dataset = train_dataset.remove_columns("idx")
 
-embedding_model = SentenceTransformer("bert-base-uncased")
+
 mapping = {2: 0, 1: 0, 0:1}
 train_dataset = Dataset.from_dict({
  "sentence1": train_dataset["premise"],
@@ -20,16 +20,13 @@ train_dataset = Dataset.from_dict({
  "label": [float(mapping[label]) for label in
 train_dataset["label"]]
 })
-
+"""{'premise': 'One of our number will carry out your instructions minutely.',
+'hypothesis': 'A member of my team will execute your orders with immense precision.',
+'label': 0}"""
 print(train_dataset[2])
 
-
-evaluator = EmbeddingSimilarityEvaluator(
- sentences1=val_sts["sentence1"],
- sentences2=val_sts["sentence2"],
- scores=[score/5 for score in val_sts["label"]],
- main_similarity="cosine"
-)
+#Semantic Textual Similarity Benchmark (STSB), Moreover, we process the STSB data to make sure all values
+#are between 0 and 1
 
 
 val_sts = load_dataset("glue", "stsb", split="validation")
@@ -39,15 +36,16 @@ evaluator = EmbeddingSimilarityEvaluator(
  scores=[score/5 for score in val_sts["label"]],
  main_similarity="cosine"
 )
+
 train_loss = losses.SoftmaxLoss(
 model=embedding_model,
 sentence_embedding_dimension=embedding_model.get_sentence_embedding_dimension(),
 num_labels=3
 )
-
+ 
 
 args = SentenceTransformerTrainingArguments( 
- output_dir="cosineloss_embedding_model",
+ output_dir="cosineloss_embedding_model", 
  num_train_epochs=1,
  per_device_train_batch_size=32,
  per_device_eval_batch_size=32,
@@ -56,13 +54,13 @@ args = SentenceTransformerTrainingArguments(
  eval_steps=100,
  logging_step=100
 )
-
+embedding_model = SentenceTransformer("bert-base-uncased")
 trainer = SentenceTransformerTrainer(
  model=embedding_model,
  args=args,
- train_dataset=train_dataset,
- loss=train_loss,
- evaluator=evaluator
+ train_dataset=train_dataset, # this contain two senetence ( Sentence 1, and Sentence 2) and a lable ( 0 ,1,2) 
+ loss=train_loss, # use cosine loss 
+ evaluator=evaluator 
 )
 trainer.train()
 
