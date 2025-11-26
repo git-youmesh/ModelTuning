@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer
 import torch
 from transformers import AutoModelForQuestionAnswering
+from haystack.nodes import FARMReader
 model_ckpt = "deepset/minilm-uncased-squad2"
 tokenizer = AutoTokenizer.from_pretrained(model_ckpt)
 question = "What is the requirements for cryptographic key management life cycle?"
@@ -49,10 +50,13 @@ pipe = pipeline("question-answering", model=model, tokenizer=tokenizer)
 ans = pipe(question=quesions2, context=context, topk=3)
 print(ans[0]['answer'])
 #Long passages 
-tokenized_example = tokenizer(quesions3, context2, return_overflowing_tokens=True, max_length=100, stride=25)
 
-pipe = pipeline("question-answering", model=model, tokenizer=tokenized_example,truncation=True)
-ans = pipe(question=quesions3, context=context2, top_k=3)
-print(ans[0]['answer 3'])
+max_seq_length, doc_stride = 384, 128
+reader = FARMReader(model_name_or_path=model_ckpt, progress_bar=False,
+ max_seq_len=max_seq_length, doc_stride=doc_stride,
+ return_no_answer=True)
+
+print(reader.predict_on_texts(question=question, texts=[context], top_k=1))
 
  
+
